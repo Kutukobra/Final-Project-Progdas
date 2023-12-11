@@ -58,6 +58,7 @@ bool checkTimeFormat(char time[]);
 void addCategory(Category categories[], uint *categoryCount);
 uint parsePeriod(Period *period);
 void updateConsumption(Device *device);
+void printTips(uint id);
 
 void printDevice(Device *device)
 {
@@ -221,6 +222,10 @@ uint parsePeriod(Period *period) // Mengubah periode menjadi menit
 {
     // Parsing (10 * puluhan jam + satuan jam) * 60 + (puluhan menit) * 10 +
     // satuan menit
+    if (strcmp(period->begin, period->end))
+    {
+        return 1440;
+    }
     uint begin_minutes = (period->begin[0] * 10 + period->begin[1]) * 60 + (period->begin[3] * 10 + period->begin[4]);
     uint end_minutes = (period->end[0] * 10 + period->end[1]) * 60 + (period->end[3] * 10 + period->end[4]);
 
@@ -310,12 +315,84 @@ uint getMenu() {
     return menuInput;
 }
 
+#define HISTOGRAM_SCALE 0.25
+void printHistogram(Category *categories[], uint categoryCount) {
+    system(CLEAR);
+    printf("=========HISTOGRAM=========\n");
+    int i, j;
+    for (i = 0; i < categoryCount; i++) {
+        printf("\n%d. %s : ", i + 1, categories[i]->name);
+        uint histogramLength = categories[i]->totalConsumption * HISTOGRAM_SCALE;
+        for (j = 0; j < histogramLength; j++) {
+            printf("#");
+        }
+    }
+    printf("\n-------------\n");
+    printf("Kategori dengan konsumsi tertinggi adalah %s (id: %u) sebesar %.2f kwh\n", categories[0]->name, categories[0]->id, categories[0]->totalConsumption);
+}
+
+void swap(Category **a, Category **b)
+{
+    Category *temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+bool comp(Category *a, Category *b)
+{
+    return (a->totalConsumption) > (b->totalConsumption);
+}
+
+void bubbleSort(Category *array[], int length, bool (*comp)(Category*, Category*))
+{
+    int i, j;
+    bool swapped;   
+    for (i = 0; i < length - 1; i++)
+    {
+        swapped = false;
+        for (j = 0; j < length - i - 1; j++)
+        {
+            if (!comp(array[j], array[j + 1]))
+            {
+                swap(&array[j], &array[j + 1]);
+                swapped = true;
+            }
+        }
+        if (swapped == false)
+        {
+            break;
+        }
+    }
+}
+
+void showStats(Category *sort_container[], uint categoryCount)
+{
+    bubbleSort(sort_container, categoryCount, comp);
+    printHistogram(sort_container, categoryCount);
+    printTips(sort_container[0]->id);
+    system(PAUSE);
+}
+
 void defaultCategories(Category categories[], uint *categoryCount)
 {
     addCategoryManual(categories, categoryCount, "Kipas");
     addCategoryManual(categories, categoryCount, "AC");
     addCategoryManual(categories, categoryCount, "TV");
     addCategoryManual(categories, categoryCount, "Lampu");
+}
+
+void printTips(uint id)
+{
+    switch(id)
+    {
+        case 0:
+            printf("Kalau Dingin Ga usah pake kipas!!\n");
+            break;
+        case 1:
+            printf("Matikan jika tidak digunakan\n");
+        default:
+            printf("Matikan jika tidak digunakan\n");
+    }
 }
 
 int main(void) 
@@ -344,11 +421,24 @@ int main(void)
                 addDevice(devices, &deviceCount, categories, &categoryCount);
                 break;
             case 2:
+                if (deviceCount <= 0)
+                {
+                    printf("PERANGKAT KOSONG!\n");
+                    system(PAUSE);
+                    break;
+                }
                 printAllDevices(categories, &categoryCount);
                 break;
             case 3:
                 break;
             case 4:
+                if (deviceCount <= 0)
+                {
+                    printf("PERANGKAT KOSONG!\n");
+                    system(PAUSE);
+                    break;
+                }
+                showStats(sort_container, categoryCount);
                 break;
             case 5:
                 help();
