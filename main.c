@@ -5,6 +5,9 @@
 #ifdef _WIN32
 #define CLEAR "cls" // buat windows
 #define PAUSE "pause"
+#elif TARGET_OS_X
+#define CLEAR "clear" // buat mac
+#define PAUSE "pause"
 #else
 #define PAUSE "read -n1 -r -p \"Press any key to continue...\" key"
 #define CLEAR "clear" // buat Unix/Linux
@@ -49,15 +52,87 @@ struct Device {
     float energyDaily;  // Total konsumsi kwh
 };
 
-// Function Declarations
+
+// Deklarasi Fungsi
 void printDevice(Device *device);
 void addDevice(Device devices[], uint *deviceCount, Category categories[], uint *categoryCount);
 void addPeriod(Device *device);
 bool checkTimeFormat(char time[]);
 void addCategory(Category categories[], uint *categoryCount);
+void addCategoryManual(Category categories[], uint *categoryCount, char name[]);
 uint parsePeriod(Period *period);
 void updateConsumption(Device *device);
+void printAllDevices(Category *categories, uint *categoryCount);
+void printLogo();
+void animateLogo();
+void help();
+uint getMenu();
+void printHistogram(Category *categories[], uint categoryCount);
+void swap(Category **a, Category **b);
+bool comp(Category *a, Category *b);
+void bubbleSort(Category *array[], int length, bool (*comp)(Category*, Category*));
+void showStats(Category *sort_container[], uint categoryCount);
+void defaultCategories(Category categories[], uint *categoryCount);
 void printTips(uint id);
+void printCredits();
+
+int main(void) 
+{
+    animateLogo();
+    Device devices[DEVICE_MAX];
+    Category categories[CATEGORY_MAX];
+    Category *sort_container[CATEGORY_MAX];
+
+    uint i;
+    for (i = 0; i < CATEGORY_MAX; ++i)
+    {
+        sort_container[i] = &categories[i];
+    }
+    uint deviceCount = 0;
+    uint categoryCount = 0;
+
+    defaultCategories(categories, &categoryCount);
+
+
+    uint menuInput;
+    do {
+        menuInput = getMenu();  
+        switch (menuInput) 
+        {
+            case 1:
+                addDevice(devices, &deviceCount, categories, &categoryCount);
+                break;
+            case 2:
+                if (deviceCount <= 0)
+                {
+                    printf("PERANGKAT KOSONG!\n");
+                    system(PAUSE);
+                    break;
+                }
+                printAllDevices(categories, &categoryCount);
+                break;
+            case 3:
+                if (deviceCount <= 0)
+                {
+                    printf("PERANGKAT KOSONG!\n");
+                    system(PAUSE);
+                    break;
+                }
+                showStats(sort_container, categoryCount);
+                break;
+            case 4:
+                help();
+                break;
+            case 5:
+                printCredits();
+                break;
+            default:
+            printf("Input tidak valid!\n");
+        }
+    } while (menuInput != 6);
+
+    return 0;
+}
 
 void printDevice(Device *device)
 {
@@ -285,12 +360,20 @@ void printLogo()
 void animateLogo()
 {
     uint i = 0;
-    for (i = 0; i < 100; i++)
+    for (i = 0; i < 120; i++)
     {
         system(CLEAR);
         printLogo();
     }
-    Beep(1000, 500);
+}
+
+void printCredits()
+{
+  printf("JESIE TENARDI (2306162002)\n");
+  printf("MUHAMMAD ARYA WIANDRA UTOMO (2306218295)\n");
+  printf("MUHAMMAD IKHSAN KURNIAWAN (2306210784)\n");
+  printf("MUHAMMAD NADZHIF FIKRI (2306210102)\n");
+  system(PAUSE);
 }
 
 void help() 
@@ -303,14 +386,15 @@ void help()
     printf("\n\t| 2. Tampilkan Device: Menampilkan daftar perangkat yang sudah ditambahkan.           |");
     printf("\n\t| 3. Statistik: Melakukan analisis terhadap data perangkat.                           |");
     printf("\n\t| 4. Help: Menampilkan menu bantuan.                                                  |");
-    printf("\n\t| 5. Exit: Keluar dari program.                                                       |");
+    printf("\n\t| 5. Credits: Menampilkan Anggota Kelompok.                                           |");
+    printf("\n\t| 6. Exit: Keluar dari program.                                                       |");
     printf("\n\t|=====================================================================================|\n");
     system("pause");
 }
 
 uint getMenu() {
     system(CLEAR);
-    animateLogo();
+    printLogo();
     printf("\n\n");
     printf("|=================================|\n");
     printf("|              MENU               |\n");
@@ -319,7 +403,8 @@ uint getMenu() {
     printf("| 2. Tampilkan Device             |\n");
     printf("| 3. Statistik                    |\n");
     printf("| 4. Help                         |\n");
-    printf("| 5. Exit                         |\n");
+    printf("| 5. Credits                      |\n");
+    printf("| 6. Exit                         |\n");
     printf("|=================================|\n");
 
     uint menuInput;
@@ -408,61 +493,4 @@ void printTips(uint id)
             printf("Matikan jika tidak digunakan\n");
     }
 }
-
-int main(void) 
-{
-    Device devices[DEVICE_MAX];
-    Category categories[CATEGORY_MAX];
-    Category *sort_container[CATEGORY_MAX];
-
-    uint i;
-    for (i = 0; i < CATEGORY_MAX; ++i)
-    {
-        sort_container[i] = &categories[i];
-    }
-    uint deviceCount = 0;
-    uint categoryCount = 0;
-
-    defaultCategories(categories, &categoryCount);
-
-
-    uint menuInput;
-    do {
-        menuInput = getMenu();  
-        switch (menuInput) 
-        {
-            case 1:
-                addDevice(devices, &deviceCount, categories, &categoryCount);
-                break;
-            case 2:
-                if (deviceCount <= 0)
-                {
-                    printf("PERANGKAT KOSONG!\n");
-                    system(PAUSE);
-                    break;
-                }
-                printAllDevices(categories, &categoryCount);
-                break;
-            case 3:
-                if (deviceCount <= 0)
-                {
-                    printf("PERANGKAT KOSONG!\n");
-                    system(PAUSE);
-                    break;
-                }
-                showStats(sort_container, categoryCount);
-                break;
-            case 4:
-                help();
-                break;
-            case 5:
-                break;
-            default:
-            printf("Input tidak valid!\n");
-        }
-    } while (menuInput != 6);
-
-    return 0;
-}
-
 // Parkiran Kursor: [][][][]
