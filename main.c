@@ -10,7 +10,6 @@
 #define CLEAR "clear" // buat Unix/Linux
 #endif
 
-
 #define DEVICE_MAX 30
 #define CATEGORY_MAX 20
 #define PERIOD_MAX 5
@@ -274,12 +273,24 @@ void printAllDevices(Category *categories, uint *categoryCount)
     system(PAUSE);
 }
 
+
 void printLogo() 
 {
-    printf("  _      __     __  __ _      __     __      __ \n");
-    printf(" | | /| / /__ _/ /_/ /| | /| / /__ _/ /_____/ / \n");
-    printf(" | |/ |/ / _ `/ __/ __/ |/ |/ / _ `/ __/ __/ _ \\ \n");
-    printf(" |__/|__/\\__,_/\\__/\\__/|__/|__/\\__,___/\\__/\\_//_/ \n");
+    printf("  _      __     __  __ _      __     __      __       \n");
+    printf(" | | /| / /__ _/ /_/ /| | /| / /__ _/ /_____/ /       \n");
+    printf(" | |/ |/ / _ `/ __/ __/ |/ |/ / _ `/ __/ __/ _ \\      \n");
+    printf(" |__/|__/\\__,_/\\__/\\__/|__/|__/\\__,___/\\__/\\_//_/     \n\a");
+}
+
+void animateLogo()
+{
+    uint i = 0;
+    for (i = 0; i < 100; i++)
+    {
+        system(CLEAR);
+        printLogo();
+    }
+    Beep(1000, 500);
 }
 
 void help() 
@@ -299,7 +310,7 @@ void help()
 
 uint getMenu() {
     system(CLEAR);
-    printLogo();
+    animateLogo();
     printf("\n\n");
     printf("|=================================|\n");
     printf("|              MENU               |\n");
@@ -310,7 +321,7 @@ uint getMenu() {
     printf("| 4. Help                         |\n");
     printf("| 5. Exit                         |\n");
     printf("|=================================|\n");
-    
+
     uint menuInput;
     printf("\nMasukkan input (1 - 6) : ");
     scanf("%d", &menuInput);
