@@ -96,7 +96,6 @@ void addDevice(Device devices[], uint *deviceCount, Category categories[], uint 
     }
     printf("---------------\n");
     printf("%d. Tambah Kategori Baru\n", i + 1);
-    printf("%d. Hapus Kategori\n", i + 2);
     printf("Pilih Opsi: ");
     scanf("%u", &categoryChoice);
 
@@ -112,6 +111,11 @@ void addDevice(Device devices[], uint *deviceCount, Category categories[], uint 
         }
         addDevice(devices, deviceCount, categories, categoryCount);
         return;
+    }
+    else if (categoryChoice > i + 1)
+    {
+        printf("BUKAN OPSI!\n");
+        system(PAUSE);
     }
     categoryChoice--;
 
@@ -222,7 +226,7 @@ uint parsePeriod(Period *period) // Mengubah periode menjadi menit
 {
     // Parsing (10 * puluhan jam + satuan jam) * 60 + (puluhan menit) * 10 +
     // satuan menit
-    if (strcmp(period->begin, period->end))
+    if (strcmp(period->begin, period->end) == 0)
     {
         return 1440;
     }
@@ -286,10 +290,9 @@ void help()
     printf("\n\t|=====================================================================================|");
     printf("\n\t| 1. Tambahkan Device: Menambahkan perangkat baru ke dalam sistem.                    |");
     printf("\n\t| 2. Tampilkan Device: Menampilkan daftar perangkat yang sudah ditambahkan.           |");
-    printf("\n\t| 3. Hapus Device: Menghapus perangkat dari sistem.                                   |");
-    printf("\n\t| 4. Statistik: Melakukan analisis terhadap data perangkat.                           |");
-    printf("\n\t| 5. Help: Menampilkan menu bantuan.                                                  |");
-    printf("\n\t| 6. Exit: Keluar dari program.                                                       |");
+    printf("\n\t| 3. Statistik: Melakukan analisis terhadap data perangkat.                           |");
+    printf("\n\t| 4. Help: Menampilkan menu bantuan.                                                  |");
+    printf("\n\t| 5. Exit: Keluar dari program.                                                       |");
     printf("\n\t|=====================================================================================|\n");
     system("pause");
 }
@@ -303,10 +306,9 @@ uint getMenu() {
     printf("|=================================|\n");
     printf("| 1. Tambahkan Device             |\n");
     printf("| 2. Tampilkan Device             |\n");
-    printf("| 3. Hapus Device                 |\n");
-    printf("| 4. Analisis                     |\n");
-    printf("| 5. Help                         |\n");
-    printf("| 6. Exit                         |\n");
+    printf("| 3. Statistik                    |\n");
+    printf("| 4. Help                         |\n");
+    printf("| 5. Exit                         |\n");
     printf("|=================================|\n");
     
     uint menuInput;
@@ -315,10 +317,11 @@ uint getMenu() {
     return menuInput;
 }
 
-#define HISTOGRAM_SCALE 0.25
+#define HISTOGRAM_SCALE 1
 void printHistogram(Category *categories[], uint categoryCount) {
     system(CLEAR);
     printf("=========HISTOGRAM=========\n");
+    printf("Kategori Terurut Dari Konsumsi Daya Terbesar\n");
     int i, j;
     for (i = 0; i < categoryCount; i++) {
         printf("\n%d. %s : ", i + 1, categories[i]->name);
@@ -430,8 +433,6 @@ int main(void)
                 printAllDevices(categories, &categoryCount);
                 break;
             case 3:
-                break;
-            case 4:
                 if (deviceCount <= 0)
                 {
                     printf("PERANGKAT KOSONG!\n");
@@ -440,10 +441,10 @@ int main(void)
                 }
                 showStats(sort_container, categoryCount);
                 break;
-            case 5:
+            case 4:
                 help();
                 break;
-            case 6:
+            case 5:
                 break;
             default:
             printf("Input tidak valid!\n");
