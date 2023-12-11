@@ -4,12 +4,16 @@
 
 #ifdef _WIN32
 #define CLEAR "cls" // buat windows
+#define PAUSE "pause"
 #else
+#define PAUSE "read -n1 -r -p \"Press any key to continue...\" key"
 #define CLEAR "clear" // buat Unix/Linux
 #endif
 
+
 #define DEVICE_MAX 30
 #define CATEGORY_MAX 20
+#define PERIOD_MAX 5
 typedef unsigned int uint;
 
 // Struct Declarations
@@ -39,7 +43,7 @@ struct Period {
 
 struct Device {
     Category *category;
-    Period periods[5];    // Maksimal 5 periode penggunaan
+    Period periods[PERIOD_MAX];    // Maksimal 5 periode penggunaan
     uint activeMinutes; // Menit aktif
     uint period_num;    // Jumlah periode penggunaan
     float power;        // Watt
@@ -69,7 +73,7 @@ void printDevice(Device *device)
 
 void addDevice(Device devices[], uint *deviceCount, Category categories[], uint *categoryCount)
 {
-    printf("Jumlah Perangkat Sekarang: %u\n", *deviceCount);
+    system(CLEAR);
     uint categoryChoice;
     uint i;
 
@@ -79,7 +83,8 @@ void addDevice(Device devices[], uint *deviceCount, Category categories[], uint 
         return;
     }
 
-    printf("Pilih kategori perangkat\n");
+    printf("--------\nPilih kategori perangkat\n------------\n");
+    printf("Jumlah Perangkat Sekarang: %u\n", *deviceCount);
     printf("Jumlah Kategori Sekarang: %u\n", *categoryCount);
     for (i = 0; i < *categoryCount; ++i) // Kategori yang sudah ada
     {
@@ -122,13 +127,22 @@ void addDevice(Device devices[], uint *deviceCount, Category categories[], uint 
     do {
         printf("Kategori: %s\n", currentDevice->category->name);
         printDevice(currentDevice);
+
         printf("1. Tambah Periode\n");
         printf("2. Selesai\n");
+        printf("Pilih Menu: ");
         scanf("%u", &categoryChoice);
 
         if (categoryChoice == 1)
         {
-            addPeriod(currentDevice);
+            if (currentDevice->period_num >= PERIOD_MAX)
+            {
+                printf("PERIODE PENUH!\n");
+            }
+            else
+            {
+                addPeriod(currentDevice);
+            }
         }
     } while (categoryChoice == 1);
 
@@ -173,7 +187,7 @@ bool checkTimeFormat(char time[])
 
 void addCategory(Category categories[], uint *categoryCount)
 {
-    printf("Tambah Kategori Baru\n");
+    printf("Tambah Kategori Baru\n----------\n");
     printf("Nama Kategori: ");
     scanf("%s", categories[*categoryCount].name);
     categories[*categoryCount].id = *categoryCount;
@@ -219,6 +233,11 @@ void printAllDevices(Category *categories, uint *categoryCount)
     printf("===========\n");
     for (i = 0; i < *categoryCount; ++i)
     {
+        if (categories[i].device_num == 0)
+        {
+            continue;
+        }
+
         printf("Kategori: %s\n", categories[i].name);
         printf("------------------\n");
         uint j;
@@ -252,6 +271,7 @@ void help()
     printf("\n\t| 5. Help: Menampilkan menu bantuan.                                                  |");
     printf("\n\t| 6. Exit: Keluar dari program.                                                       |");
     printf("\n\t|=====================================================================================|\n");
+    system("pause");
 }
 
 uint getMenu() {
@@ -280,13 +300,19 @@ void defaultCategories(Category categories[], uint *categoryCount)
     addCategoryManual(categories, categoryCount, "AC");
     addCategoryManual(categories, categoryCount, "TV");
     addCategoryManual(categories, categoryCount, "Lampu");
-    addCategoryManual(categories, categoryCount, "Vibrator");
 }
 
 int main(void) 
 {
-    Device devices[50];
-    Category categories[20];
+    Device devices[DEVICE_MAX];
+    Category categories[CATEGORY_MAX];
+    Category *sort_container[CATEGORY_MAX];
+
+    uint i;
+    for (i = 0; i < CATEGORY_MAX; ++i)
+    {
+        sort_container[i] = &categories[i];
+    }
     uint deviceCount = 0;
     uint categoryCount = 0;
 
