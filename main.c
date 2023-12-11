@@ -31,7 +31,7 @@ typedef enum bool
 struct Category {
     char name[16]; // Nama (maksimal 16 karakter)
     uint id;       // identifikasi
-    float *totalConsumption;
+    float totalConsumption;
     Device *devices[5]; // Device pada kategori ini
     uint device_num;
 };
@@ -66,9 +66,11 @@ void printDevice(Device *device)
     uint i;
     for (i = 0; i < device->period_num; ++i)
     {
-        printf("O %s - %s\n", device->periods[i].begin, device->periods[i].end);
+        printf("* %s - %s\n", device->periods[i].begin, device->periods[i].end);
     }
-    printf("Konsumsi Harian: %.2f kwh\n\n", device->energyDaily);
+    printf("Waktu Aktif Harian: %u menit\n", device->activeMinutes);
+    printf("Konsumsi Harian: %.2f kwh\n", device->energyDaily);
+    printf("-------------\n");
 }
 
 void addDevice(Device devices[], uint *deviceCount, Category categories[], uint *categoryCount)
@@ -85,14 +87,16 @@ void addDevice(Device devices[], uint *deviceCount, Category categories[], uint 
 
     printf("--------\nPilih kategori perangkat\n------------\n");
     printf("Jumlah Perangkat Sekarang: %u\n", *deviceCount);
-    printf("Jumlah Kategori Sekarang: %u\n", *categoryCount);
+    printf("Jumlah Kategori Tersedia: %u\n", *categoryCount);
+    printf("--------------------\n");
     for (i = 0; i < *categoryCount; ++i) // Kategori yang sudah ada
     {
         printf("%d. %s\n", i + 1, categories[i].name);
     }
-
+    printf("---------------\n");
     printf("%d. Tambah Kategori Baru\n", i + 1);
     printf("%d. Hapus Kategori\n", i + 2);
+    printf("Pilih Opsi: ");
     scanf("%u", &categoryChoice);
 
     if (categoryChoice == i + 1)
@@ -116,21 +120,24 @@ void addDevice(Device devices[], uint *deviceCount, Category categories[], uint 
     categories[categoryChoice].devices[categories[categoryChoice].device_num] = currentDevice;
     categories[categoryChoice].device_num++;
 
-    printf("Jumlah Perangkat pada Kategori %s: %u\n", categories[categoryChoice].name, categories[categoryChoice].device_num);
+    system(CLEAR);
+    printf("--------------\nMenambahkan Perangkat ke Kategori %s\n-----------\n", categories[categoryChoice].name);
 
-    printf("Daya Perangkat: ");
+    printf("Daya Perangkat (WATT): ");
     scanf("%f", &(currentDevice->power));
 
     currentDevice->period_num = 0;
     addPeriod(currentDevice);
 
     do {
-        printf("Kategori: %s\n", currentDevice->category->name);
+        system(CLEAR);
+        printf("=Device Baru=\n");
+        printf("----------\nKategori: %s\n----------\n", currentDevice->category->name);
         printDevice(currentDevice);
-
+        printf("=================\n");
         printf("1. Tambah Periode\n");
         printf("2. Selesai\n");
-        printf("Pilih Menu: ");
+        printf("Pilih Opsi: ");
         scanf("%u", &categoryChoice);
 
         if (categoryChoice == 1)
@@ -151,8 +158,9 @@ void addDevice(Device devices[], uint *deviceCount, Category categories[], uint 
 
 void addPeriod(Device *device)
 {
-    printf("Tambah Periode Baru\n");
-    printf("Format Input: JJ.MM\n");
+    system(CLEAR);
+    printf("----------\nTambah Periode Penggunaan\n");
+    printf("[Format Input JJ.MM]\n----------\n");
     do {
         printf("Waktu Mulai: ");
         scanf("%s", device->periods[device->period_num].begin);
@@ -166,12 +174,14 @@ void addPeriod(Device *device)
     device->activeMinutes += parsePeriod(&device->periods[device->period_num]);
     device->period_num++;
     updateConsumption(device);
+    device->category->totalConsumption += device->energyDaily;
 }
 
 bool checkTimeFormat(char time[])
 {
     if (time[2] != '.')
     {
+        printf("FORMAT WAKTU SALAH!\n");
         return false;
     }
     uint i;
@@ -179,6 +189,7 @@ bool checkTimeFormat(char time[])
     {
         if ((time[i] < '0' || time[i] > '9') & time[i] != '.')
         {
+            printf("FORMAT WAKTU SALAH!\n");
             return false;
         }
     }
@@ -187,11 +198,12 @@ bool checkTimeFormat(char time[])
 
 void addCategory(Category categories[], uint *categoryCount)
 {
-    printf("Tambah Kategori Baru\n----------\n");
+    system(CLEAR);
+    printf("----------\nTambah Kategori Baru\n----------\n");
     printf("Nama Kategori: ");
     scanf("%s", categories[*categoryCount].name);
     categories[*categoryCount].id = *categoryCount;
-    categories[*categoryCount].totalConsumption = (float*)malloc(4);
+    categories[*categoryCount].totalConsumption = 0;
     categories[*categoryCount].device_num = 0;
     (*categoryCount)++;
 }
@@ -200,7 +212,7 @@ void addCategoryManual(Category categories[], uint *categoryCount, char name[])
 {
     strcpy(categories[*categoryCount].name, name);
     categories[*categoryCount].id = *categoryCount;
-    categories[*categoryCount].totalConsumption = (float*)malloc(4);
+    categories[*categoryCount].totalConsumption = 0;
     categories[*categoryCount].device_num = 0;
     (*categoryCount)++;
 }
@@ -229,8 +241,8 @@ void updateConsumption(Device *device)
 
 void printAllDevices(Category *categories, uint *categoryCount)
 {
+    system(CLEAR);
     uint i;
-    printf("===========\n");
     for (i = 0; i < *categoryCount; ++i)
     {
         if (categories[i].device_num == 0)
@@ -238,17 +250,19 @@ void printAllDevices(Category *categories, uint *categoryCount)
             continue;
         }
 
+        printf("===========\n");
         printf("Kategori: %s\n", categories[i].name);
         printf("------------------\n");
         uint j;
         for (j = 0; j < categories[i].device_num; ++j)
         {
-            printf("Device %d:\n", i + 1);
+            printf("Device %d:\n", j + 1);
             printDevice(categories[i].devices[j]);
         }
-        printf("Total Konsumsi Harian: %.2f\n", *(categories[i].totalConsumption));
+        printf("Total Konsumsi Harian: %.2f kwh\n", categories[i].totalConsumption);
         printf("========\n");
     }
+    system(PAUSE);
 }
 
 void printLogo() 
@@ -261,6 +275,7 @@ void printLogo()
 
 void help() 
 {
+    system(CLEAR);
     printf("\n\t|=====================================================================================|");
     printf("\n\t|------------------------------------------HELP---------------------------------------|");
     printf("\n\t|=====================================================================================|");
@@ -275,6 +290,7 @@ void help()
 }
 
 uint getMenu() {
+    system(CLEAR);
     printLogo();
     printf("\n\n");
     printf("|=================================|\n");
